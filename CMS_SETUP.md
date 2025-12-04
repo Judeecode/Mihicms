@@ -4,10 +4,10 @@ This guide will help you set up the Content Management System for managing conte
 
 ## Prerequisites
 
-1. **WAMP** installed and running
-   - Download from: https://www.wampserver.com/
-   - Make sure Apache and MySQL services are running (green icon in WAMP tray)
-   - Your project should be in `C:\wamp\www\` directory (or your WAMP www directory)
+1. **XAMPP** installed and running
+   - Download from: https://www.apachefriends.org/
+   - Make sure Apache and MySQL services are running (check XAMPP Control Panel)
+   - Your project should be in `C:\xampp\htdocs\` directory (or your XAMPP htdocs directory)
 
 ## Setup Instructions
 
@@ -15,7 +15,7 @@ This guide will help you set up the Content Management System for managing conte
 
 1. Open **phpMyAdmin** (usually at `http://localhost/phpmyadmin`)
 2. Click on "SQL" tab
-3. Copy and paste the contents of `database.sql` file
+3. Copy and paste the contents of `database/database.sql` file
 4. Click "Go" to execute
 5. This will create:
    - Database: `mihi_cms`
@@ -24,15 +24,15 @@ This guide will help you set up the Content Management System for managing conte
 
 ### Step 2: Database Configuration
 
-1. Open `config.php`
-2. Verify the database settings (default WAMP settings):
+1. Open `cms/config.php`
+2. Verify the database settings (default XAMPP settings):
    ```php
    DB_HOST: 'localhost'
    DB_USER: 'root'
    DB_PASS: '' (empty by default)
    DB_NAME: 'mihi_cms'
    ```
-3. If your WAMP MySQL has a different password, update `DB_PASS` in `config.php`
+3. If your XAMPP MySQL has a different password, update `DB_PASS` in `cms/config.php`
 
 ### Step 3: File Structure
 
@@ -40,11 +40,14 @@ Make sure your files are in the correct location:
 ```
 MiHi-Entertainment/
 ├── index.html
-├── login.php
-├── logout.php
-├── admin.php
-├── config.php
-├── database.sql
+├── cms/
+│   ├── login.php
+│   ├── logout.php
+│   ├── admin.php
+│   ├── config.php
+│   └── sync_*.php (all sync files)
+├── database/
+│   └── database.sql
 ├── api/
 │   └── get_content.php
 └── assets/
@@ -54,17 +57,18 @@ MiHi-Entertainment/
 
 ### Step 4: Access the System
 
-1. **Login Page**: `http://localhost/MiHi-Entertainment/login.php`
+1. **Login Page**: `http://localhost/MiHi-Entertainment/cms/login.php`
    - Username: `admin`
    - Password: `admin123`
    - ⚠️ **IMPORTANT**: Change the password after first login!
 
-2. **Admin Dashboard**: `http://localhost/MiHi-Entertainment/admin.php`
+2. **Admin Dashboard**: `http://localhost/MiHi-Entertainment/cms/admin.php`
    - Add new content elements
    - Edit existing content
    - Delete content elements
 
 3. **View Site**: `http://localhost/MiHi-Entertainment/index.html`
+   - Content will load dynamically from the database
    - Content will load dynamically from the database
 
 ## How to Use the CMS
@@ -132,8 +136,8 @@ The following content elements are already set up in the database:
 ## Troubleshooting
 
 ### Database Connection Error
-- Check if MySQL is running in WAMP (should be green in WAMP tray)
-- Verify database credentials in `config.php`
+- Check if MySQL is running in XAMPP (check XAMPP Control Panel)
+- Verify database credentials in `cms/config.php`
 - Make sure database `mihi_cms` exists
 
 ### Content Not Loading
@@ -143,13 +147,13 @@ The following content elements are already set up in the database:
 
 ### Login Not Working
 - Verify admin user exists in `admin_users` table
-- Check PHP error logs in WAMP (usually in `wamp/logs/php_error.log`)
+- Check PHP error logs in XAMPP (usually in `C:\xampp\php\logs\php_error.log` or `C:\xampp\apache\logs\error.log`)
 - Make sure sessions are working (check `php.ini`)
 
 ## Support
 
 For issues or questions, check:
-- PHP error logs in WAMP (usually in `wamp/logs/php_error.log`)
+- PHP error logs in XAMPP (usually in `C:\xampp\php\logs\php_error.log` or `C:\xampp\apache\logs\error.log`)
 - Browser console for JavaScript errors
 - Database content in phpMyAdmin
 

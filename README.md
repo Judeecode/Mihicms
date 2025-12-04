@@ -111,9 +111,9 @@ MiHi/
    http://localhost:8000
    ```
 
-### For WAMP Users
-1. Copy the `MiHi-Entertainment` folder to `C:\wamp\www\` (or your WAMP www directory)
-2. Start WAMP Server (make sure Apache and MySQL are running - green icon in tray)
+### For XAMPP Users
+1. Copy the `MiHi-Entertainment` folder to `C:\xampp\htdocs\` (or your XAMPP htdocs directory)
+2. Start XAMPP Control Panel (make sure Apache and MySQL are running)
 3. Visit `http://localhost/MiHi-Entertainment`
 
 ## 🎨 **Customization**

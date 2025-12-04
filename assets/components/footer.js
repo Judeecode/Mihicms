@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <a href="#" class="hover:text-white transition-colors whitespace-nowrap">Sitemap</a>
                         <a href="${pathPrefix}privacy-policy.html" class="hover:text-white transition-colors whitespace-nowrap">Privacy</a>
                         <a href="${pathPrefix}terms.html" class="hover:text-white transition-colors whitespace-nowrap">Terms</a>
-                        <a href="#" data-login-link class="hover:text-white transition-colors whitespace-nowrap">Admin Login</a>
+                        <a href="${pathPrefix}cms/login.php" class="hover:text-white transition-colors whitespace-nowrap">Admin Login</a>
                     </div>
                 </div>
             </div>
@@ -176,72 +176,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Insert footer before closing body tag
     document.body.insertAdjacentHTML('beforeend', footerHTML);
-
-    // Ensure login link navigates properly (prevents download issue)
-    // Calculate the project root path (works for both localhost/WAMP and live server)
-    const getProjectRoot = function () {
-        const protocol = window.location.protocol;
-        const host = window.location.host;
-
-        // Find where footer.js is located to determine project root
-        // footer.js is at: assets/components/footer.js
-        // So we need to go up 2 levels from assets/components/ to get to root
-        let rootPath = '/';
-
-        if (footerScriptSrc) {
-            try {
-                const scriptUrl = new URL(footerScriptSrc, window.location.href);
-                const scriptPath = scriptUrl.pathname;
-
-                // Remove 'assets/components/footer.js' to get project root
-                // This works for both localhost (e.g., /MiHi-Entertainment/assets/components/footer.js)
-                // and live server (e.g., /assets/components/footer.js or /subdir/assets/components/footer.js)
-                const projectRoot = scriptPath.replace(/\/assets\/components\/footer\.js$/i, '');
-                rootPath = projectRoot || '/';
-
-                // Ensure rootPath starts with / and ends with /
-                if (!rootPath.startsWith('/')) {
-                    rootPath = '/' + rootPath;
-                }
-                if (!rootPath.endsWith('/')) {
-                    rootPath = rootPath + '/';
-                }
-            } catch (e) {
-                // Fallback: try to determine from current page path
-                const currentPath = window.location.pathname;
-                // If we're in a subdirectory, try to find the project root
-                // This is a fallback - the script path method should work in most cases
-                rootPath = '/';
-            }
-        } else {
-            // Ultimate fallback: use root
-            rootPath = '/';
-        }
-
-        // Construct full URL (works for both localhost and live server)
-        return protocol + '//' + host + rootPath;
-    };
-
-    const loginLink = document.querySelector('footer a[data-login-link]');
-    if (loginLink) {
-        // Calculate project root and set absolute URL
-        const projectRoot = getProjectRoot();
-        const loginUrl = projectRoot + 'login.php';
-
-        // Set href to absolute URL (for accessibility and right-click support)
-        loginLink.href = loginUrl;
-        loginLink.setAttribute('href', loginUrl);
-
-        // Handle click to ensure proper navigation (prevents download)
-        loginLink.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            // Force navigation using absolute URL - this ensures PHP is executed by server
-            window.location.assign(loginUrl);
-            return false;
-        }, true); // Use capture phase to ensure we catch it first
-    }
 
     // Load phone protection script if not already loaded
     if (!document.querySelector('script[src*="phone-protection.js"]')) {
