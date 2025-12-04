@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en" style="background: transparent;">
+
+<head>
+  <meta charset="utf-8">
+  <title>Flipbook Example</title>
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="../../assets/images/favicon.svg">
+  <!-- Flipbook StyleSheet -->
+  <link href="../components/css/dflip.min.css" rel="stylesheet" type="text/css">
+  <!-- Icons Stylesheet -->
+  <link href="../components/css/themify-icons.min.css" rel="stylesheet" type="text/css">
+  <style>
+    html,
+    body {
+      background: transparent !important;
+    }
+
+    ._df_container,
+    ._df_book,
+    .df_container,
+    #df_manual_book {
+      background: transparent !important;
+      background-color: transparent !important;
+    }
+
+    .container {
+      background: transparent !important;
+      background-color: transparent !important;
+    }
+
+    /* Disable flipbook loading animations */
+    ._df_container,
+    ._df_book,
+    .df_container,
+    #df_manual_book,
+    ._df_container *,
+    ._df_book *,
+    .df_container *,
+    #df_manual_book * {
+      animation: none !important;
+      transition: none !important;
+    }
+
+    /* Initially hide the flipbook to prevent animation */
+    #df_manual_book {
+      visibility: hidden;
+    }
+  </style>
+</head>
+
+<body style="background: transparent; margin: 0; padding: 0;">
+
+  <div class="container" style="background: transparent;">
+    <div class="" style="padding-bottom:30px; background: transparent;">
+      <!--Normal FLipbook-->
+      <div class="_df_book" height="1000" webgl="true" source="example-assets/books/mainpage.pdf" id="df_manual_book"
+        style="background: transparent !important;">
+      </div>
+
+    </div>
+  </div>
+
+  <!-- jQuery  -->
+  <script src="../components/js/libs/jquery.min.js" type="text/javascript"></script>
+  <script>
+    // Function to get PDF path from URL parameter (synchronous first, then async fallback)
+    function getPDFPathFromURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const pdfParam = urlParams.get('pdf');
+      console.log('Flipbook: Checking URL parameters...');
+      console.log('Flipbook: Full URL:', window.location.href);
+      console.log('Flipbook: Search params:', window.location.search);
+      console.log('Flipbook: PDF param from URL:', pdfParam);
+
+      if (pdfParam) {
+        let pdfPath = decodeURIComponent(pdfParam);
+        console.log('Flipbook: Decoded PDF path from URL:', pdfPath);
+
+        // Fix path - ensure it's relative to the flipbook/examples folder
+        pdfPath = pdfPath.replace(/\\/g, '/');
+
+        // If path starts with /, remove it (absolute path from root)
+        if (pdfPath.startsWith('/')) {
+          pdfPath = pdfPath.substring(1);
+          console.log('Flipbook: Removed leading slash:', pdfPath);
+        }
+
+        // If path doesn't start with ../ or http, add ../../ to go up from flipbook/examples folder
+        if (!pdfPath.startsWith('../') && !pdfPath.startsWith('http') && !pdfPath.startsWith('https')) {
+          pdfPath = '../../' + pdfPath;
+          console.log('Flipbook: Added ../../ prefix:', pdfPath);
+        }
+
+        console.log('Flipbook: Final PDF path from URL parameter:', pdfPath);
+        return pdfPath;
+      }
+      console.log('Flipbook: No PDF parameter in URL - will try API');
+      return null;
+    }
+
+    // Function to get PDF path from CMS API (async)
+    async function getPDFPathFromAPI() {
+      try {
+        // test.html is in flipbook/examples/, so we need ../../ to reach root, then api/
+        const response = await fetch('../../api/get_content.php?page=index');
+        console.log('Flipbook: Fetching from API:', '../../api/get_content.php?page=index');
+        if (response.ok) {
+          const content = await response.json();
+          console.log('Flipbook: API response received, keys:', Object.keys(content));
+
+          if (content['brochure-pdf']) {
+            const pdfData = content['brochure-pdf'];
+            console.log('Flipbook: PDF data from API:', pdfData);
+            let pdfPath = pdfData.content;
+            console.log('Flipbook: Raw PDF path from API:', pdfPath);
+
+            // Parse PDF path (format: "PDF:path")
+            if (pdfPath && pdfPath.indexOf(':') !== -1) {
+              const parts = pdfPath.split(':');
+              pdfPath = parts.slice(1).join(':');
+              console.log('Flipbook: Parsed PDF path (after removing PDF:):', pdfPath);
+            }
+
+            // Fix path - ensure it's relative to the flipbook/examples folder
+            if (pdfPath) {
+              // Replace backslashes with forward slashes
+              pdfPath = pdfPath.replace(/\\/g, '/');
+              console.log('Flipbook: After backslash replacement:', pdfPath);
+
+              // If path starts with /, remove it (absolute path from root)
+              if (pdfPath.startsWith('/')) {
+                pdfPath = pdfPath.substring(1);
+                console.log('Flipbook: After removing leading slash:', pdfPath);
+              }
+
+              // If path doesn't start with ../ or http, add ../../ to go up from flipbook/examples folder
+              if (!pdfPath.startsWith('../') && !pdfPath.startsWith('http') && !pdfPath.startsWith('https')) {
+                pdfPath = '../../' + pdfPath;
+                console.log('Flipbook: After adding ../../:', pdfPath);
+              }
+
+              console.log('Flipbook: Final PDF path from CMS API:', pdfPath);
+              return pdfPath;
+            } else {
+              console.log('Flipbook: PDF path is empty after parsing');
+            }
+          } else {
+            console.log('Flipbook: No brochure-pdf in API response');
+          }
+        } else {
+          console.error('Flipbook: API response not OK, status:', response.status);
+        }
+      } catch (error) {
+        console.warn('Flipbook: Error loading PDF from API:', error);
+      }
+      return null;
+    }
+
+    // Set PDF source IMMEDIATELY (synchronously) before dflip loads
+    // This ensures dflip reads the correct source when it initializes
+    (function () {
+      const flipbookElement = document.getElementById('df_manual_book');
+      if (!flipbookElement) {
+        console.error('Flipbook: Element not found!');
+        return;
+      }
+
+      // Log current source
+      const currentSource = flipbookElement.getAttribute('source');
+      console.log('Flipbook: Current source in HTML:', currentSource);
+
+      // Try to get PDF from URL parameter first (synchronous)
+      let pdfPath = getPDFPathFromURL();
+      console.log('Flipbook: pdfPath from getPDFPathFromURL():', pdfPath);
+
+      if (pdfPath) {
+        // Set source immediately from URL parameter
+        flipbookElement.setAttribute('source', pdfPath);
+        console.log('Flipbook: Source set from URL parameter to:', pdfPath);
+        const verified = flipbookElement.getAttribute('source');
+        console.log('Flipbook: Verified source attribute:', verified);
+
+        // Double-check it's set correctly
+        if (verified !== pdfPath) {
+          console.error('Flipbook: ERROR - Source mismatch! Expected:', pdfPath, 'Got:', verified);
+          // Force set it again
+          flipbookElement.setAttribute('source', pdfPath);
+          console.log('Flipbook: Force-set source again to:', flipbookElement.getAttribute('source'));
+        }
+      } else {
+        // No URL parameter - fetch from API and WAIT before loading dflip
+        // This is critical: we need the PDF path BEFORE dflip initializes
+        console.log('Flipbook: No URL parameter, fetching from API and delaying dflip load...');
+        console.log('Flipbook: Current default source:', currentSource);
+
+        // Use async/await to fetch from API and set source
+        // Note: dflip.js loads normally, but we'll set the source as quickly as possible
+        (async function () {
+          try {
+            const apiPath = await getPDFPathFromAPI();
+            if (apiPath && flipbookElement) {
+              console.log('Flipbook: Got PDF from API, setting source to:', apiPath);
+              flipbookElement.setAttribute('source', apiPath);
+              const verified = flipbookElement.getAttribute('source');
+              console.log('Flipbook: Verified source is now:', verified);
+
+              // Now load dflip.js AFTER source is set
+              console.log('Flipbook: Source set, now loading dflip.js...');
+              if (window.loadDflipScript) {
+                window.loadDflipScript();
+              } else {
+                // Fallback: load dflip script
+                const script = document.createElement('script');
+                script.src = '../components/js/dflip.min.js';
+                script.type = 'text/javascript';
+                document.head.appendChild(script);
+              }
+            } else {
+              console.log('Flipbook: No PDF from API, loading dflip with default source:', currentSource);
+              // Load dflip with default source
+              if (window.loadDflipScript) {
+                window.loadDflipScript();
+              }
+            }
+          } catch (error) {
+            console.error('Flipbook: Error fetching PDF from API:', error);
+          }
+        })();
+
+        // For async API call, we can't delay dflip loading
+        // But we'll set the source and hope dflip re-reads it or we'll need to reload
+        // The source will be set before dflip fully initializes in most cases
+      }
+    })();
+  </script>
+
+  <!-- Flipbook main Js file - Load AFTER source is set -->
+  <!-- We'll load this dynamically after we have the PDF path -->
+  <script>
+    // Check if we have PDF from URL parameter - if yes, load dflip immediately
+    // If no, wait for API call to complete before loading dflip
+    (function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const pdfParam = urlParams.get('pdf');
+
+      if (pdfParam) {
+        // PDF is in URL parameter, safe to load dflip immediately
+        console.log('Flipbook: PDF in URL parameter, loading dflip.js immediately');
+        loadDflipScript();
+      } else {
+        // No PDF in URL - wait for API call to complete
+        console.log('Flipbook: No PDF in URL, waiting for API call before loading dflip.js');
+        // The source-setting code will call loadDflipScript() after getting PDF from API
+      }
+
+      function loadDflipScript() {
+        const script = document.createElement('script');
+        script.src = '../components/js/dflip.min.js';
+        script.type = 'text/javascript';
+        script.onload = function () {
+          console.log('Flipbook: dflip.js loaded successfully');
+        };
+        script.onerror = function () {
+          console.error('Flipbook: Error loading dflip.js');
+        };
+        document.head.appendChild(script);
+      }
+
+      // Make loadDflipScript available globally for the source-setting code
+      window.loadDflipScript = loadDflipScript;
+    })();
+  </script>
+  <script>
+    // Wait for flipbook to load, then show it instantly
+    $(document).ready(function () {
+      console.log('Flipbook: Document ready, checking flipbook initialization');
+      const flipbookElement = document.getElementById('df_manual_book');
+      const currentSource = flipbookElement.getAttribute('source');
+      console.log('Flipbook: Current source attribute:', currentSource);
+      console.log('Flipbook: Flipbook element:', flipbookElement);
+      console.log('Flipbook: Element innerHTML length:', flipbookElement.innerHTML.length);
+      console.log('Flipbook: Element children count:', flipbookElement.children.length);
+
+      // Verify PDF file is accessible
+      if (currentSource && !currentSource.startsWith('http')) {
+        // Try to fetch the PDF to verify it's accessible
+        fetch(currentSource, { method: 'HEAD' })
+          .then(response => {
+            if (response.ok) {
+              console.log('Flipbook: PDF file is accessible at:', currentSource);
+            } else {
+              console.error('Flipbook: PDF file not accessible, status:', response.status, 'at:', currentSource);
+            }
+          })
+          .catch(error => {
+            console.error('Flipbook: Error checking PDF accessibility:', error, 'at:', currentSource);
+          });
+      }
+
+      var checkCount = 0;
+      var maxChecks = 100; // Check for up to 10 seconds (100 * 100ms)
+
+      // Use jQuery to check if flipbook is initialized
+      var checkFlipbook = setInterval(function () {
+        checkCount++;
+        var flipbookElement = document.getElementById('df_manual_book');
+        var flipbook = $('#df_manual_book').find('._df_container');
+        var dfBook = $('#df_manual_book').find('._df_book');
+        var anyContent = flipbook.length > 0 || dfBook.length > 0 || flipbookElement.children.length > 0;
+
+        // Log every 10 checks for debugging
+        if (checkCount % 10 === 0) {
+          const currentSource = flipbookElement.getAttribute('source');
+          console.log('Flipbook: Check #' + checkCount + ' - Container:', flipbook.length, 'Book:', dfBook.length, 'Children:', flipbookElement.children.length, 'Source:', currentSource);
+
+          // Also check for any error messages in the console or on the page
+          const errorElements = document.querySelectorAll('.df_error, ._df_error, [class*="error"]');
+          if (errorElements.length > 0) {
+            console.warn('Flipbook: Found error elements:', errorElements);
+            errorElements.forEach(el => console.warn('Flipbook: Error element text:', el.textContent || el.innerText));
+          }
+
+          // Check if there are any iframes or canvas elements (dflip uses these)
+          const iframes = flipbookElement.querySelectorAll('iframe');
+          const canvases = flipbookElement.querySelectorAll('canvas');
+          if (iframes.length > 0 || canvases.length > 0) {
+            console.log('Flipbook: Found iframes:', iframes.length, 'canvases:', canvases.length);
+          }
+        }
+
+        if (anyContent) {
+          console.log('Flipbook: Initialized successfully after', checkCount, 'checks');
+          clearInterval(checkFlipbook);
+          flipbookElement.style.visibility = 'visible';
+
+          // Notify parent window that flipbook is loaded
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage('flipbookLoaded', '*');
+            console.log('Flipbook: Sent flipbookLoaded message to parent');
+          }
+        } else if (checkCount >= maxChecks) {
+          // Max checks reached
+          console.log('Flipbook: Max checks reached, showing flipbook anyway');
+          clearInterval(checkFlipbook);
+          flipbookElement.style.visibility = 'visible';
+
+          // Notify parent window that flipbook is loaded
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage('flipbookLoaded', '*');
+            console.log('Flipbook: Sent flipbookLoaded message to parent (max checks)');
+          }
+        }
+      }, 100);
+
+      // Timeout safety after 10 seconds
+      setTimeout(function () {
+        console.log('Flipbook: Timeout reached (10s), showing flipbook anyway');
+        clearInterval(checkFlipbook);
+        var flipbookElement = document.getElementById('df_manual_book');
+        if (flipbookElement) {
+          flipbookElement.style.visibility = 'visible';
+
+          // Notify parent window that flipbook is loaded
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage('flipbookLoaded', '*');
+            console.log('Flipbook: Sent flipbookLoaded message to parent (timeout)');
+          }
+        }
+      }, 10000);
+    });
+  </script>
+
+</body>
+
+</html>
