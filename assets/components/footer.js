@@ -1,7 +1,7 @@
 // Shared Footer Component
 // This script will load the same footer on all pages
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Determine the correct path prefix by finding the footer script's location
     const scripts = document.getElementsByTagName('script');
     let footerScriptSrc = '';
@@ -166,6 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <a href="#" class="hover:text-white transition-colors whitespace-nowrap">Sitemap</a>
                         <a href="${pathPrefix}privacy-policy.html" class="hover:text-white transition-colors whitespace-nowrap">Privacy</a>
                         <a href="${pathPrefix}terms.html" class="hover:text-white transition-colors whitespace-nowrap">Terms</a>
+                        <a href="${pathPrefix}login.php" class="hover:text-white transition-colors whitespace-nowrap">Admin Login</a>
                     </div>
                 </div>
             </div>
@@ -175,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Insert footer before closing body tag
     document.body.insertAdjacentHTML('beforeend', footerHTML);
-    
+
     // Load phone protection script if not already loaded
     if (!document.querySelector('script[src*="phone-protection.js"]')) {
         const phoneScript = document.createElement('script');
